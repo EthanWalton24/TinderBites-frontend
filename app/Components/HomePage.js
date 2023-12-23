@@ -12,7 +12,7 @@ import XIcon from '../assets/XIcon.svg';
 import QuestionMarkIcon from '../assets/QuestionMarkIcon.svg';
 import CheckIcon from '../assets/CheckIcon.svg';
 import CarIcon from '../assets/CarIcon.svg';
-import LocationIcon from '../assets/LocationIcon.svg';
+import InfoIcon from '../assets/InfoIcon.svg';
 
 import ThemeContext from './ThemeContext';
 import colors from '../config/colors';
@@ -26,8 +26,11 @@ import {HOST_IP,TOKEN, GOOGLE_API_KEY} from '@env';
 function Home({ navigation, addMatchData, setPage }) {
 
     const { theme, toggleTheme } = useContext(ThemeContext);
-	const mainColor = theme === 'light' ? colors.light : colors.dark
-	const secondaryColor = theme === 'light' ? colors.dark : colors.light
+	const primaryColor = theme === 'light' ? colors.light : colors.dark
+	const contrastColor = theme === 'light' ? colors.dark : colors.light
+    const secondaryColor = theme === 'light' ? colors.light2 : colors.dark2
+    const greyColor = theme === 'light' ? colors.grey : colors.grey2
+    const accentColor = theme === 'light' ? colors.primary : colors.primary
     
     const tinderCardsRef = React.useRef([]);
     const cardIndexRef = React.useRef(2);
@@ -140,10 +143,10 @@ function Home({ navigation, addMatchData, setPage }) {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
     
-            <View style={[styles.container, {backgroundColor: mainColor}]}>
+            <View style={[styles.container, {backgroundColor: primaryColor}]}>
                 <View style={styles.centered}>
-                    <Text style={{fontSize: 25, color: secondaryColor}}>That is all!</Text>
-                    <TouchableOpacity style={[styles.matchesButton, {backgroundColor: secondaryColor}]} onPress={() => {setPage('Matches');navigation.navigate("Matches");}}><Text style={{color: mainColor, fontSize: 20}}>Matches</Text></TouchableOpacity>
+                    <Text style={{fontSize: 25, color: contrastColor}}>That is all!</Text>
+                    <TouchableOpacity style={[styles.matchesButton, {backgroundColor: contrastColor}]} onPress={() => {setPage('Matches');navigation.navigate("Matches");}}><Text style={{color: primaryColor, fontSize: 20}}>Matches</Text></TouchableOpacity>
                 </View>
                 
 
@@ -162,7 +165,7 @@ function Home({ navigation, addMatchData, setPage }) {
                             OverlayLabelRight={OverlayRight}
                             OverlayLabelLeft={OverlayLeft}
                             OverlayLabelTop={OverlayTop}
-                            cardStyle={[styles.card, styles.shadow, {backgroundColor: secondaryColor}]}
+                            cardStyle={[styles.card, styles.shadow, {backgroundColor: contrastColor}]}
                             onSwipedRight={() => {
                                 handleSwipe({'data': item, 'swipe': 'yes'});
                             }}
@@ -185,7 +188,7 @@ function Home({ navigation, addMatchData, setPage }) {
                                 </ImageBackground>
 
                                 {/* overlay */}
-                                <View style={{position: 'absolute', bottom: 15, paddingHorizontal: 20}}>
+                                <View style={{width: Dimensions.get('screen').width - 18, position: 'absolute', bottom: 15, paddingHorizontal: 20}}>
 
                                     {/* name */}
                                     <View style={{flexDirection: 'row', marginTop: 20}}>
@@ -202,17 +205,28 @@ function Home({ navigation, addMatchData, setPage }) {
                                             baseColor='transparent'
                                             style={{alignSelf: 'flex-start'}}
                                         />
-                                        <Text style={{fontSize: 18, position: 'absolute', left: (25*item.rating)+((25*.3)*(item.rating).toFixed(0))+10, marginTop: 3, color: colors.grey}}>{item.rating.toFixed(1)} ({item.userRatingCount} reviews)</Text>
+                                        <Text style={{fontSize: 18, position: 'absolute', left: (25*item.rating)+((25*.3)*(item.rating).toFixed(0))+10, marginTop: 3, color: greyColor}}>{item.rating.toFixed(1)} ({item.userRatingCount} reviews)</Text>
                                     </View>
 
-                                    {/* distance */}
-                                    <View style={{flexDirection: 'row'}}>
-                                        <CarIcon width={28} height={28} stroke={colors.grey} fill={'transparent'} strokeWidth={1.2} style={{marginTop: 5}} />
-                                        <Text style={{fontSize: 16, marginLeft: 10, marginTop: 10, color: colors.grey}}>{(getDistance({ latitude: 30.323507, longitude: -95.656346 }, { latitude: item.location.latitude, longitude: item.location.longitude }, .1 )/1609.34).toFixed(1)} Miles</Text>
-                                    </View>
 
-                                    {/* open? */}
-                                    <Text style={{fontSize: 18, marginTop: 5, color: item.regularOpeningHours.openNow ? colors.red : colors.green}}>{item.regularOpeningHours.openNow ? 'Closed' : 'Open Now'}</Text>
+                                    
+                                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end'}}>
+                                        <View>
+                                            {/* distance */}
+                                            <View style={{flexDirection: 'row'}}>
+                                                <CarIcon width={28} height={28} stroke={greyColor} fill={'transparent'} strokeWidth={1.2} style={{marginTop: 5}} />
+                                                <Text style={{fontSize: 16, marginLeft: 10, marginTop: 10, color: greyColor}}>{(getDistance({ latitude: 30.323507, longitude: -95.656346 }, { latitude: item.location.latitude, longitude: item.location.longitude }, .1 )/1609.34).toFixed(1)} Miles</Text>
+                                            </View>
+
+                                            {/* open? */}
+                                            <Text style={{fontSize: 18, marginTop: 5, color: item.regularOpeningHours.openNow ? colors.red : colors.green}}>{item.regularOpeningHours.openNow ? 'Closed' : 'Open Now'}</Text>
+                                        </View>
+
+                                        {/* info button */}
+                                        <TouchableOpacity onPress={() => {navigation.navigate('Info', { selectedPlaceData: item })}}>
+                                            <InfoIcon width={35} height={35} fill={colors.light}/>
+                                        </TouchableOpacity>
+                                    </View>
                                     
 
                                 </View>
@@ -229,7 +243,7 @@ function Home({ navigation, addMatchData, setPage }) {
                     <TouchableOpacity activeOpacity={.4} onPress={() => {tinderCardsRef.current?.[cardIndexRef.current-2 < placesData.length-1-1 ? 2 : (placesData.length-1) - (cardIndexRef.current-2)]?.swipeLeft()}}><View style={[styles.cardButton, {borderColor: colors.red, width: 70, height: 70, borderRadius: 35}]}><XIcon width={65} height={65} fill={colors.red} /></View></TouchableOpacity>
                     <TouchableOpacity activeOpacity={.4} onPress={() => {tinderCardsRef.current?.[cardIndexRef.current-2 < placesData.length-1-1 ? 2 : (placesData.length-1) - (cardIndexRef.current-2)]?.swipeTop()}}><View style={[styles.cardButton, {borderColor: colors.primary, width: 55, height: 55, borderRadius: 55/2}]}><QuestionMarkIcon width={45} height={45} fill={colors.primary} /></View></TouchableOpacity>
                     <TouchableOpacity activeOpacity={.4} onPress={() => {tinderCardsRef.current?.[cardIndexRef.current-2 < placesData.length-1-1 ? 2 : (placesData.length-1) - (cardIndexRef.current-2)]?.swipeRight()}}><View style={[styles.cardButton, {borderColor: colors.green, width: 70, height: 70, borderRadius: 35}]}><CheckIcon width={65} height={65} fill={colors.green} /></View></TouchableOpacity>
-                    {/* <View style={{width: 45, height: 45, borderRadius: 45/2, alignSelf:"flex-end", opacity: 0, marginHorizontal: 5}}><UndoIcon width={45} height={45} fill={colors.grey} /></View> */}
+                    {/* <View style={{width: 45, height: 45, borderRadius: 45/2, alignSelf:"flex-end", opacity: 0, marginHorizontal: 5}}><UndoIcon width={45} height={45} fill={greyColor} /></View> */}
                 </View>
 
             </View>

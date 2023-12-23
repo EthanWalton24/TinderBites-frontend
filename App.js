@@ -6,14 +6,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { navigationRef, navigate } from './app/RootNavigation'
 import { ThemeProvider } from './app/Components/ThemeContext';
 import Header from './app/Components/Header';
-import Login from './app/Components/Login';	
-import Home from './app/Components/Home';													
-import Matches from './app/Components/Matches';
-import Account from './app/Components/Account';
+import LoginPage from './app/Components/LoginPage';	
+import HomePage from './app/Components/HomePage';													
+import MatchesPage from './app/Components/MatchesPage';
+import AccountPage from './app/Components/AccountPage';
 import Navbar from './app/Components/Navbar';
 
 import { setData, getData, removeData } from './app/Components/Storage';
 import colors from './app/config/colors';
+import InfoPage from './app/Components/InfoPage';
 
 
 const Stack = createNativeStackNavigator();
@@ -74,10 +75,11 @@ export default function App() {
 				}
 
 				<Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false, contentStyle: {flex: 1, backgroundColor: mainColor}, animation: "none"}}>
-					<Stack.Screen name="Login">{props => <Login {...props} setPage={setPage} />}</Stack.Screen>
-					<Stack.Screen name="Home">{props => <Home {...props} setPage={setPage} matchesList={matchesList} addMatchData={addMatchData} />}</Stack.Screen>
-					<Stack.Screen name="Matches">{props => <Matches {...props} matchesList={matchesList} />}</Stack.Screen>
-					<Stack.Screen name="Account">{props => <Account {...props} page={page} />}</Stack.Screen>
+					<Stack.Screen name="Login">{props => <LoginPage {...props} setPage={setPage} />}</Stack.Screen>
+					<Stack.Screen name="Home">{props => <HomePage {...props} setPage={setPage} matchesList={matchesList} addMatchData={addMatchData} />}</Stack.Screen>
+					<Stack.Screen name="Info" options={{gestureDirection: 'vertical', animation: 'slide_from_bottom', animationDuration: 250}}>{props => <InfoPage {...props} />}</Stack.Screen>
+					<Stack.Screen name="Matches">{props => <MatchesPage {...props} matchesList={matchesList} />}</Stack.Screen>
+					<Stack.Screen name="Account">{props => <AccountPage {...props} page={page} />}</Stack.Screen>
 				</Stack.Navigator>
 
 				{page != 'Login' &&

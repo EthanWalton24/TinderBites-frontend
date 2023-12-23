@@ -1,22 +1,18 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, ScrollView, Text, Button, StyleSheet, Dimensions, RefreshControl, Animated, TouchableHighlight, TouchableOpacity, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ImageBackground, Image } from 'expo-image';
 import Carousel from 'react-native-reanimated-carousel';
 import ProgressBar from 'react-native-animated-progress';
-import { Rating } from '@kolking/react-native-rating';
-import ViewMoreText from 'react-native-view-more-text';
 
 import NextIcon from '../assets/NextIcon.svg';
 import ArrowIcon from '../assets/ArrowIcon.svg';
-import MenuIcon from '../assets/MenuIcon.svg';
-import PhoneIcon from '../assets/PhoneIcon.svg';
-import MapIcon from '../assets/MapIcon.svg';
 
 import ThemeContext from './ThemeContext';
 import colors from '../config/colors';
 
 import {GOOGLE_API_KEY} from '@env';
+import InfoPage from './InfoPage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 
 
@@ -38,32 +34,49 @@ function Matches({ matchesList }) {
     }, []);
 
     const carouselRef = React.useRef()
-    const slidingPanelRef = React.useRef()
+    const usedArrows = React.useRef(false)
 
     const [carouselIndex, setCarouselIndex] = React.useState(1);
+    const [activeArrows, setActiveArrows] = React.useState({'left': false, 'right': true})
     const [selectedPlaceData, setSelectedPlaceData] = React.useState(matchesList[0]?.data);
-
-    const scrolling = React.useRef(false)
 
 
     const handleMoveCarousel = (dir) => {
+        usedArrows.current = true
 
         if (dir == 1) {
-            if (carouselRef.current?.getCurrentIndex()+1 >= matchesList.length) {
-                setCarouselIndex(1);
-            } else {
-                setCarouselIndex(ind => ind+1);
-            }
+            handleActiveArrows()
+            setCarouselIndex(ind => ind+1);
             carouselRef.current?.next()
+            setRefreshing(true)
+            setTimeout(()=>{setRefreshing(false)}, 500)
         } else {
-            if (carouselIndex <= 1) {
-                setCarouselIndex(matchesList.length)
-            } else {
-                setCarouselIndex(ind => ind-1);
-            }
+            handleActiveArrows()
+            setCarouselIndex(ind => ind-1);
             carouselRef.current?.prev()
+            setRefreshing(true)
+            setTimeout(()=>{setRefreshing(false)}, 500)
         }
 
+    }
+
+    const handleActiveArrows = () => {
+        setActiveArrows({'left': true, 'right': true})
+
+        if (usedArrows.current) {
+            if (carouselRef.current?.getCurrentIndex()+2 >= matchesList.length) {
+                setActiveArrows({'left': true, 'right': false})
+            } else if (carouselRef.current?.getCurrentIndex() <= 1) {
+                setActiveArrows({'left': false, 'right': true})
+            }
+        } else {
+            if (carouselRef.current?.getCurrentIndex()+1 >= matchesList.length) {
+                setActiveArrows({'left': true, 'right': false})
+            }
+            else if (carouselRef.current?.getCurrentIndex()+1 <= 1) {
+                setActiveArrows({'left': false, 'right': true})
+            }
+        }
     }
 
 
@@ -142,7 +155,7 @@ function Matches({ matchesList }) {
             <ScrollView style={{flex: 1}} disableIntervalMomentum={true} snapToOffsets={[0, Dimensions.get('window').height - 130]} decelerationRate='fast' snapToEnd={false} showsVerticalScrollIndicator={false}>
                 <View style={{backgroundColor: primaryColor, borderRadius: 20, height: Dimensions.get('window').height - 260}}>
                     <Carousel
-                        loop
+                        loop={false}
                         ref={carouselRef}
                         width={Dimensions.get('window').width}
                         height={Dimensions.get('window').height - 410}
@@ -152,7 +165,7 @@ function Matches({ matchesList }) {
                             parallaxScrollingOffset: 80
                         }}
                         scrollAnimationDuration={750}
-                        onSnapToItem={(index) => {setCarouselIndex(index+1); setSelectedPlaceData(matchesList[index].data)}}
+                        onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); if (!usedArrows.current) {setCarouselIndex(index+1); handleActiveArrows()} else {usedArrows.current = false}}}
                         renderItem={({index, item}) => (
                             <View style={{width: '85%', marginHorizontal: '7.5%'}}>
                                 <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `https://maps.googleapis.com/maps/api/place/photo?photoreference=${item.data.photos[1].name.split('/').pop()}&maxwidth=1200&key=${GOOGLE_API_KEY}`}} key={item.data.displayName.text} />
@@ -164,8 +177,8 @@ function Matches({ matchesList }) {
                     {/* carousel navigation */}
                     <View style={{marginHorizontal: 30, justifyContent: 'center'}}>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10}}>
-                            <TouchableOpacity activeOpacity={.5} onPress={() => {handleMoveCarousel(-1)}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5, transform: [{rotateY: '180deg'}]}} /></TouchableOpacity >
-                            <TouchableOpacity activeOpacity={.5} onPress={() => {handleMoveCarousel(1)}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5}} /></TouchableOpacity >
+                            <TouchableOpacity activeOpacity={.5} onPress={() => {activeArrows.left && !refreshing ? handleMoveCarousel(-1) : null}}><NextIcon width={35} height={35} stroke={activeArrows.left ? greyColor : secondaryColor} strokeWidth={1.2} style={{marginTop: 5, transform: [{rotateY: '180deg'}]}} /></TouchableOpacity >
+                            <TouchableOpacity activeOpacity={.5} onPress={() => {activeArrows.right && !refreshing ? handleMoveCarousel(1) : null}}><NextIcon width={35} height={35} stroke={activeArrows.right ? greyColor : secondaryColor} strokeWidth={1.2} style={{marginTop: 5}} /></TouchableOpacity >
                         </View>
                         
                         <ProgressBar
@@ -173,7 +186,7 @@ function Matches({ matchesList }) {
                             progressDuration={500}
                             height={6}
                             backgroundColor={accentColor}
-                            trackColor={`${secondaryColor}`}
+                            trackColor={secondaryColor}
                             animated={true}
                         />
 
@@ -181,104 +194,22 @@ function Matches({ matchesList }) {
                     </View>
                 </View>
 
-                {/* more info section */}
+                {/* info page */}
                 <LinearGradient colors={[secondaryColor+'66', primaryColor+'66', primaryColor]} style={{minHeight: Dimensions.get('window').height - 50, width: '100%', backgroundColor: secondaryColor+'66', borderTopLeftRadius: 40, borderTopRightRadius: 40}}>
-                    
-                    {/* header */}
-                    <View style={{alignItems: 'center', paddingTop: 5, height: 80}}>
-                        <ArrowIcon width={40} height={35} fill={greyColor} />
-                        <Text style={{fontSize: 20, color: greyColor}}>See More</Text>
-                    </View>
-
-                    {/* info */}
-                    <View style={{flex: 1, marginTop: 50}}>
-
-                        {/* image */}
-                        <Image source={{uri: `https://maps.googleapis.com/maps/api/place/photo?photoreference=${selectedPlaceData.photos[0].name.split('/').pop()}&maxwidth=1200&key=${GOOGLE_API_KEY}`}} style={{width: '100%', aspectRatio: 1.5/1}} />
                         
-                        {/* name section */}
-                        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 10}}>
-                            <View style={{paddingVertical: 20, flex: 1}}>
-                                <Text style={{fontSize: 25, fontWeight: 'bold', color: contrastColor}}>{selectedPlaceData.displayName.text}</Text>
-                                <View style={{flexDirection: 'row', marginTop: 5, alignItems: 'center'}}>
-                                    <Rating
-                                        disabled='true'
-                                        size={18}
-                                        rating={selectedPlaceData.rating}
-                                        fillColor='#f1c40f'
-                                        baseColor='transparent'
-                                        style={{alignSelf: 'flex-start'}}
-                                    />
-                                    <Text style={{fontSize: 18, position: 'absolute', left: (18*selectedPlaceData.rating)+((18*.3)*(selectedPlaceData.rating).toFixed(0))+10, marginTop: 3, color: colors.grey}}>{selectedPlaceData.rating.toFixed(1)} ({selectedPlaceData.userRatingCount} reviews)</Text>
-                                </View>
-
-                            </View>
-
-                            <Text style={{fontSize: 24, color: greyColor, margin: 15}}>{selectedPlaceData.priceLevel=='PRICE_LEVEL_INEXPENSIVE' ? '$' : selectedPlaceData.priceLevel=='PRICE_LEVEL_MODERATE' ? '$$' : selectedPlaceData.priceLevel=='PRICE_LEVEL_EXPENSIVE' ? '$$$' : '$$$$'}</Text>
+                        {/* header */}
+                        <View style={{alignItems: 'center', paddingTop: 5, height: 80}}>
+                            <ArrowIcon width={40} height={35} fill={greyColor} />
+                            <Text style={{fontSize: 20, color: greyColor}}>See More</Text>
                         </View>
 
-                        {/* button section */}
-                        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 10, paddingVertical: 10, borderTopWidth: 1, borderBottomWidth: 1, borderColor: greyColor}}>
+                        <InfoPage placeData={selectedPlaceData} />
 
-                            <TouchableOpacity style={{paddingHorizontal: 20}} onPress={() => {Linking.openURL(`tel:${selectedPlaceData.internationalPhoneNumber.replace(' ','')}`)}}>
-                                <PhoneIcon width={35} height={35} fill={accentColor} />
-                                <Text style={{fontSize: 14, color: accentColor, textAlign: 'center'}}>Call</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={{paddingHorizontal: 20}}>
-                                <MenuIcon width={35} height={35} fill={contrastColor} />
-                                <Text style={{fontSize: 14, color: contrastColor, textAlign: 'center'}}>Menu</Text>
-                            </TouchableOpacity>
-                            
-                            <TouchableOpacity style={{paddingHorizontal: 20}} onPress={() => {Linking.openURL(selectedPlaceData.googleMapsUri)}}>
-                                <MapIcon width={35} height={35} fill={colors.red} stroke={primaryColor} strokeWidth={.5} />
-                                <Text style={{fontSize: 14, color: colors.red, textAlign: 'center'}}>Map</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {('editorialSummary' in selectedPlaceData) && 
-                            <View style={{marginHorizontal: 10, paddingVertical: 10, borderBottomWidth: 1, borderColor: greyColor}}>
-                                <Text style={{color: contrastColor, fontSize: 18, fontWeight: 'bold'}}>Overview</Text>
-                                <Text style={{marginTop: 15, color: contrastColor, fontSize: 16}}>{selectedPlaceData.editorialSummary.text}</Text>
-                            </View>
-                        }
-
-                        {selectedPlaceData.reviews.map((review, index) => {
-                            return (
-                                <View style={{marginHorizontal: 10, marginTop: 20}} key={review.authorAttribution.displayName}>
-                                    <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                            <Image style={{width: 40, aspectRatio: 1/1, marginRight: 10}} source={{uri: review.authorAttribution.photoUri}} />
-                                            <View>
-                                                <Text style={{color: contrastColor, fontSize: 18}}>{review.authorAttribution.displayName}</Text>
-                                                <Text style={{color: greyColor, fontSize: 14}}>{review.relativePublishTimeDescription}</Text>
-                                            </View>
-                                        </View>
-                                        <Rating
-                                            disabled='true'
-                                            size={18}
-                                            rating={review.rating}
-                                            fillColor={accentColor}
-                                            baseColor={secondaryColor}
-                                        />
-                                    </View>
-                                    <ViewMoreText
-                                    numberOfLines={3}
-                                    renderViewMore={(onPress) => <Text style={{color: accentColor}} onPress={onPress}>See more</Text>}
-                                    renderViewLess={(onPress) => <Text style={{color: accentColor}} onPress={onPress}>See less</Text>}
-                                    textStyle={{marginTop: 10, color: contrastColor, fontSize: 15}}
-                                    >
-                                        {review.text.text}
-                                    </ViewMoreText>
-                                </View>
-                            )
-                        })}
-                    </View>
-
+                    {/* add padding to bottom of scrollview */}
+                    <View style={{height: 50}}></View>
+                
                 </LinearGradient>
 
-                {/* add padding to bottom of scrollview */}
-                <View style={{height: 50}}></View>
 
             </ScrollView>
         );

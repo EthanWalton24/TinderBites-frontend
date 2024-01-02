@@ -24,11 +24,19 @@ export default function App() {
 
 	const systemTheme = useColorScheme();
 	const [theme, setTheme] = useState(systemTheme);
-	const mainColor = theme === 'light' ? colors.light : colors.dark
-	const secondaryColor = theme === 'light' ? colors.dark : colors.light
+	const primaryColor = theme === 'light' ? colors.light : colors.dark
+	const contrastColor = theme === 'light' ? colors.dark : colors.light
+    const secondaryColor = theme === 'light' ? colors.light2 : colors.dark2
+    const greyColor = theme === 'light' ? colors.grey : colors.grey2
+    const accentColor = theme === 'light' ? colors.primary : colors.primary
 
 	const [page, setPage] = useState();
 	const [matchesList, setMatchesList] = useState([]);
+	const [groupMatchesList, setGroupMatchesList] = useState([]);
+
+	const [useGroup, setUseGroup] = useState(false);
+	const [subMenuShown, setSubMenuShown] = useState(false);
+
 
 
 	async function getToken() {
@@ -64,26 +72,26 @@ export default function App() {
 
 	return (
 		<ThemeProvider theme={theme} setTheme={setTheme} systemTheme={systemTheme}>
-			<SafeAreaView style={{flex: 1, backgroundColor: mainColor}}>
+			<SafeAreaView style={{flex: 1, backgroundColor: primaryColor}}>
 
 			<StatusBar />
 
-			<NavigationContainer ref={navigationRef} style={{flex: 1, backgroundColor: mainColor}}>
+			<NavigationContainer ref={navigationRef} style={{flex: 1, backgroundColor: primaryColor}}>
 				
-				{page != 'Login' &&
-					<Header />
+				{page != 'Login' && !subMenuShown &&
+					<Header page={page} useGroup={useGroup} setUseGroup={setUseGroup} />
 				}
 
-				<Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false, contentStyle: {flex: 1, backgroundColor: mainColor}, animation: "none"}}>
+				<Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false, contentStyle: {flex: 1, backgroundColor: primaryColor}, animation: "none"}}>
 					<Stack.Screen name="Login">{props => <LoginPage {...props} setPage={setPage} />}</Stack.Screen>
 					<Stack.Screen name="Home">{props => <HomePage {...props} setPage={setPage} matchesList={matchesList} addMatchData={addMatchData} />}</Stack.Screen>
 					<Stack.Screen name="Info" options={{gestureDirection: 'vertical', animation: 'slide_from_bottom', animationDuration: 250}}>{props => <InfoPage {...props} />}</Stack.Screen>
 					<Stack.Screen name="Matches">{props => <MatchesPage {...props} matchesList={matchesList} />}</Stack.Screen>
-					<Stack.Screen name="Account">{props => <AccountPage {...props} page={page} />}</Stack.Screen>
+					<Stack.Screen name="Account">{props => <AccountPage {...props} page={page} setSubMenuShown={setSubMenuShown} />}</Stack.Screen>
 				</Stack.Navigator>
 
 				{page != 'Login' &&
-					<Navbar page={page} setPage={setPage} />
+					<Navbar page={page} setPage={setPage} setSubMenuShown={setSubMenuShown} />
 				}
 				
 				

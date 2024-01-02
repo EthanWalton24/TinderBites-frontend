@@ -23,15 +23,18 @@
     "react-native": "0.72.6",
     "react-native-animated-progress": "^1.0.2",
     "react-native-card-stack": "^0.2.8",
+    "react-native-geocoding": "^0.5.0",
     "react-native-gesture-handler": "~2.12.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-reanimated": "~3.3.0",
     "react-native-reanimated-carousel": "^3.5.1",
     "react-native-svg": "13.9.0",
     "react-native-svg-transformer": "^1.1.0",
+    "react-native-toggle-element": "^2.0.1",
     "react-native-view-more-text": "^2.2.0",
     "rn-sliding-up-panel": "^2.4.6",
-    "rn-tinder-card": "^1.7.0"
+    "rn-tinder-card": "^1.7.0",
+    "expo-location": "~16.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

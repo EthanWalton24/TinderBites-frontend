@@ -37,7 +37,7 @@ function Login({ navigation, setPage }) {
         let validUsername = false
         let validEmail = false
         let validPassword = false
-        let url = `http://${HOST_IP}/api/auth/${type.toLowerCase()}`
+        let url = `http://192.168.7.86:8000/api/auth/${type.toLowerCase()}`
 
         // console.log(username.current, email.current, password.current, passwordConfirm.current, url)
 

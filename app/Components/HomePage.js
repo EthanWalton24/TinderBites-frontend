@@ -1,11 +1,13 @@
 import React, { useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Switch } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TinderCard } from 'rn-tinder-card';
 import { Rating } from '@kolking/react-native-rating';
 import { ImageBackground } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDistance } from 'geolib';
+import Geocoder from 'react-native-geocoding';
+import * as Location from 'expo-location';
 
 import UndoIcon from '../assets/UndoIcon.svg';
 import XIcon from '../assets/XIcon.svg';
@@ -18,9 +20,16 @@ import ThemeContext from './ThemeContext';
 import colors from '../config/colors';
 import { setData, getData, removeData } from './Storage';
 
-import {HOST_IP,TOKEN, GOOGLE_API_KEY} from '@env';
+import {HOST_IP, GOOGLE_API_KEY} from '@env';
 
+// request location
+Location.requestForegroundPermissionsAsync()
 
+// get location
+// Location.getCurrentPositionAsync()
+// .then((l) => {
+//     console.log(l)
+// })
 
 
 function Home({ navigation, addMatchData, setPage }) {
@@ -54,7 +63,7 @@ function Home({ navigation, addMatchData, setPage }) {
             await setData('placesData', JSON.stringify(res))
         } else {
             res = JSON.parse(data)
-            // await setData('placesData', null)
+            await setData('placesData', null)
             
         } 
         await setPlacesData(res)

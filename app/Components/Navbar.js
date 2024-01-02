@@ -11,7 +11,7 @@ import PersonIcon from '../assets/PersonIcon.svg'
 
 
 
-function Navbar({ page, setPage }) {
+function Navbar({ page, setPage, setSubMenuShown }) {
     
     const {theme, toggleTheme} = useContext(ThemeContext);
 	const mainColor = theme === 'light' ? colors.light : colors.dark
@@ -19,9 +19,9 @@ function Navbar({ page, setPage }) {
 
     return (
         <View style={[styles.container, {backgroundColor: mainColor}]}>
-            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Home'); RootNavigation.navigate("Home")}}><LayersIcon width={35} height={35} fill={page === "Home" ? colors.primary : secondaryColor} /></TouchableHighlight>
-            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Matches'); RootNavigation.navigate("Matches")}}><LinkIcon width={35} height={35} fill={page === "Matches" ? colors.primary : secondaryColor} /></TouchableHighlight>
-            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Account'); RootNavigation.navigate("Account")}}><PersonIcon width={35} height={35} fill={page === "Account" ? colors.primary : secondaryColor} /></TouchableHighlight>
+            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Home'); RootNavigation.navigate("Home"); setSubMenuShown(false)}}><LayersIcon width={35} height={35} fill={page === "Home" ? colors.primary : secondaryColor} /></TouchableHighlight>
+            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Matches'); RootNavigation.navigate("Matches"); setSubMenuShown(false)}}><LinkIcon width={35} height={35} fill={page === "Matches" ? colors.primary : secondaryColor} /></TouchableHighlight>
+            <TouchableHighlight activeOpacity={.6} underlayColor={mainColor} style={styles.navIcon} onPress={() => {setPage('Account'); RootNavigation.navigate("Account"); setSubMenuShown(false)}}><PersonIcon width={35} height={35} fill={page === "Account" ? colors.primary : secondaryColor} /></TouchableHighlight>
         </View>
     );
 }

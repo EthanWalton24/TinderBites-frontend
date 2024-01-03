@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TinderCard } from 'rn-tinder-card';
 import { Rating } from '@kolking/react-native-rating';
@@ -25,14 +25,14 @@ import {HOST_IP, GOOGLE_API_KEY} from '@env';
 // request location
 Location.requestForegroundPermissionsAsync()
 
-// get location
+// get location 
 // Location.getCurrentPositionAsync()
 // .then((l) => {
 //     console.log(l)
 // })
 
 
-function Home({ navigation, addMatchData, setPage }) {
+function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) {
 
     const { theme, toggleTheme } = useContext(ThemeContext);
 	const primaryColor = theme === 'light' ? colors.light : colors.dark
@@ -49,23 +49,24 @@ function Home({ navigation, addMatchData, setPage }) {
 
 
     async function fetchPlacesData() {
-        let token = await (getData('token'))
         let res;
-        let data = await getData('placesData')
+        let type = useGroup ? 'group' : 'solo';
+        let token = await getData('token')
+        let data = await getData(`placesData_${type}`)
         if (data == null) {
-            res = await fetch(`http://${HOST_IP}/api/getPlaces`, {
+            res = await fetch(`http://${HOST_IP}/api/getPlaces?type=${type}`, {
                 method: 'GET',
                 headers: {
                     "Authorization": `Token ${token}`
-                },
+                }
             })
             res = await res.json()
-            await setData('placesData', JSON.stringify(res))
+            await setData(`placesData_${type}`, JSON.stringify(res))
         } else {
             res = JSON.parse(data)
-            await setData('placesData', null)
+            // await setData(`placesData_${type}`, null)
             
-        } 
+        }
         await setPlacesData(res)
         setVisibleCards(await res.slice(0,3).reverse())
         return res
@@ -73,10 +74,7 @@ function Home({ navigation, addMatchData, setPage }) {
 
     useEffect(() => {
         fetchPlacesData()
-        // .then((placesData) => {
-        //     console.log(placesData[0])
-        // })
-    }, [theme])
+    }, [useGroup])
 
 
     const renderNextCard = () => {
@@ -161,9 +159,7 @@ function Home({ navigation, addMatchData, setPage }) {
 
                 {/* cards */}
                 {visibleCards.map((item, index) => {
-                    // if (index == 0) {
-                    //     console.log(item)
-                    // }
+                    // console.log(item)
                     return (
                         <View style={[styles.cardContainer]} pointerEvents="box-none" key={item.displayName.text}>
                             <TinderCard
@@ -228,11 +224,11 @@ function Home({ navigation, addMatchData, setPage }) {
                                             </View>
 
                                             {/* open? */}
-                                            <Text style={{fontSize: 18, marginTop: 5, color: item.regularOpeningHours.openNow ? colors.red : colors.green}}>{item.regularOpeningHours.openNow ? 'Closed' : 'Open Now'}</Text>
+                                            <Text style={{fontSize: 18, marginTop: 5, color: item.regularOpeningHours?.openNow ? colors.red : colors.green}}>{item.regularOpeningHours?.openNow ? 'Closed' : 'Open Now'}</Text>
                                         </View>
 
                                         {/* info button */}
-                                        <TouchableOpacity onPress={() => {navigation.navigate('Info', { selectedPlaceData: item })}}>
+                                        <TouchableOpacity onPress={() => {navigation.navigate('Info', { selectedPlaceData: item }); setPage('Info')}}>
                                             <InfoIcon width={35} height={35} fill={colors.light}/>
                                         </TouchableOpacity>
                                     </View>

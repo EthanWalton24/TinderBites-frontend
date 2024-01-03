@@ -66,7 +66,11 @@ export default function App() {
 
 
 	const addMatchData = (matchData) => {
-		setMatchesList(prevData => ([...prevData, matchData]))
+		if (useGroup) {
+			setGroupMatchesList(prevData => ([...prevData, matchData]))
+		} else {
+			setMatchesList(prevData => ([...prevData, matchData]))
+		}
 	}
 
 
@@ -74,28 +78,27 @@ export default function App() {
 		<ThemeProvider theme={theme} setTheme={setTheme} systemTheme={systemTheme}>
 			<SafeAreaView style={{flex: 1, backgroundColor: primaryColor}}>
 
-			<StatusBar />
+				<StatusBar />
 
-			<NavigationContainer ref={navigationRef} style={{flex: 1, backgroundColor: primaryColor}}>
-				
-				{page != 'Login' && !subMenuShown &&
-					<Header page={page} useGroup={useGroup} setUseGroup={setUseGroup} />
-				}
+				<NavigationContainer ref={navigationRef} style={{flex: 1, backgroundColor: primaryColor}}>
+					
+					{page != 'Login' && page != 'Info' && !subMenuShown &&
+						<Header page={page} useGroup={useGroup} setUseGroup={setUseGroup} />
+					}
 
-				<Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false, contentStyle: {flex: 1, backgroundColor: primaryColor}, animation: "none"}}>
-					<Stack.Screen name="Login">{props => <LoginPage {...props} setPage={setPage} />}</Stack.Screen>
-					<Stack.Screen name="Home">{props => <HomePage {...props} setPage={setPage} matchesList={matchesList} addMatchData={addMatchData} />}</Stack.Screen>
-					<Stack.Screen name="Info" options={{gestureDirection: 'vertical', animation: 'slide_from_bottom', animationDuration: 250}}>{props => <InfoPage {...props} />}</Stack.Screen>
-					<Stack.Screen name="Matches">{props => <MatchesPage {...props} matchesList={matchesList} />}</Stack.Screen>
-					<Stack.Screen name="Account">{props => <AccountPage {...props} page={page} setSubMenuShown={setSubMenuShown} />}</Stack.Screen>
-				</Stack.Navigator>
+					<Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false, contentStyle: {flex: 1, backgroundColor: primaryColor}, animation: "none"}}>
+						<Stack.Screen name="Login">{props => <LoginPage {...props} setPage={setPage} />}</Stack.Screen>
+						<Stack.Screen name="Home">{props => <HomePage {...props} setPage={setPage} matchesList={useGroup ? groupMatchesList : matchesList} addMatchData={addMatchData} useGroup={useGroup} setSubMenuShown={setSubMenuShown} />}</Stack.Screen>
+						<Stack.Screen name="Info" options={{gestureDirection: 'vertical', animation: 'slide_from_bottom', animationDuration: 250}}>{props => <InfoPage {...props} setPage={setPage} />}</Stack.Screen>
+						<Stack.Screen name="Matches">{props => <MatchesPage {...props} matchesList={useGroup ? groupMatchesList : matchesList} />}</Stack.Screen>
+						<Stack.Screen name="Account">{props => <AccountPage {...props} page={page} setSubMenuShown={setSubMenuShown} />}</Stack.Screen>
+					</Stack.Navigator>
 
-				{page != 'Login' &&
-					<Navbar page={page} setPage={setPage} setSubMenuShown={setSubMenuShown} />
-				}
-				
-				
-			</NavigationContainer>
+					{page != 'Login' && page != 'Info' && !subMenuShown &&
+						<Navbar page={page} setPage={setPage} setSubMenuShown={setSubMenuShown} />
+					}
+					
+				</NavigationContainer>
 
 			</SafeAreaView>
 		</ThemeProvider>		

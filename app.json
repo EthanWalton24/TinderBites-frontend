@@ -18,7 +18,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationAlwaysAndWhenInUseUsageDescription": "REASON_FOR_REQUEST",
-        "UIBackgroundModes": ["location", "fetch"]
+        "UIBackgroundModes": ["location", "fetch"],
+        "NSPhotoLibraryUsageDescription": "Select image/video from photos"
       }
     },
     "android": {

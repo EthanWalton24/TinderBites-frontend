@@ -6,7 +6,7 @@ import { Rating } from '@kolking/react-native-rating';
 import ViewMoreText from 'react-native-view-more-text';
 
 
-import BackIcon from '../assets/BackIcon.svg';
+import ArrowIcon from '../assets/ArrowIcon.svg';
 import MenuIcon from '../assets/MenuIcon.svg';
 import PhoneIcon from '../assets/PhoneIcon.svg';
 import MapIcon from '../assets/MapIcon.svg';
@@ -18,7 +18,7 @@ import {GOOGLE_API_KEY} from '@env';
 
 
 
-function InfoPage({ route, navigation, placeData }) {
+function InfoPage({ route, navigation, setPage, placeData }) {
 
     const {theme, toggleTheme} = useContext(ThemeContext);
     const primaryColor = theme === 'light' ? colors.light : colors.dark
@@ -41,15 +41,16 @@ function InfoPage({ route, navigation, placeData }) {
         onScroll={route ? ({nativeEvent}) => {
             if (nativeEvent.contentOffset.y < -15) {
                 navigation.navigate('Home')
+                setPage('Home')
             }
         } : null}
         scrollEventThrottle={route ? 600 : 1}
         >
 
             {route && 
-                <View style={{width: 50, height: 50, justifyContent:'center'}}>
-                    <TouchableOpacity style={{marginLeft: 0}} onPress={() => {navigation.navigate('Home')}}>
-                        <BackIcon width={30} height={30} fill={contrastColor} />
+                <View style={{height: 50, alignSelf: 'flex-end', justifyContent:'center', marginRight: 10, transform: [{rotate: '180deg'}, {scaleX: .8}]}}>
+                    <TouchableOpacity style={{paddingHorizontal: 10}} onPress={() => {navigation.navigate('Home'); setPage('Home')}}>
+                        <ArrowIcon width={30} height={30} fill={contrastColor} />
                     </TouchableOpacity>
                 </View>
             }

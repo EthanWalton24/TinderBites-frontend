@@ -3,6 +3,7 @@ import { View, Text, Button, TouchableHighlight, StyleSheet, Dimensions, Touchab
 import { LinearGradient } from 'expo-linear-gradient';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import { Image } from 'expo-image';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 import { setData, getData, removeData } from './Storage';
 
@@ -18,9 +19,7 @@ import colors from '../config/colors';
 
 
 
-
-
-function Account({ navigation, page, setSubMenuShown }) {
+function Account({ navigation, page, setSubMenuShown}) {
 
     const { theme, toggleTheme } = useContext(ThemeContext);
 	const primaryColor = theme === 'light' ? colors.light : colors.dark
@@ -59,7 +58,7 @@ function Account({ navigation, page, setSubMenuShown }) {
     const handleSubMenuButtonPress = (button) => {
         setSubMenu(button)
         setSubMenuShown(true)
-        slidingPanelRef.current.show(Dimensions.get('screen').height - 135)
+        slidingPanelRef.current.show(Dimensions.get('screen').height - 60)
     };
 
     const handleRemovePersonButtonPress = (person) => {
@@ -107,7 +106,7 @@ function Account({ navigation, page, setSubMenuShown }) {
 
 
             {/* sub-menus */}
-            <SlidingUpPanel friction={.85} ref={slidingPanelRef} containerStyle={{backgroundColor: primaryColor, paddingTop: 20}} animatedValue={new Animated.Value(0)} snappingPoints={[0, Dimensions.get('screen').height - 135]} allowDragging={false}>
+            <SlidingUpPanel friction={.9} ref={slidingPanelRef} containerStyle={{backgroundColor: primaryColor, paddingTop: 20}} animatedValue={new Animated.Value(0)} allowDragging={false}>
                 <View style={{flex: 1}}>
 
                     {/* close sub-menu button */}

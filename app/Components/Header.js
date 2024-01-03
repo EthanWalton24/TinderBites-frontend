@@ -38,7 +38,9 @@ function Header({ page, useGroup, setUseGroup }) {
                 thumbButton={{width: 30, height: 30, activeBackgroundColor: accentColor, inActiveBackgroundColor: accentColor}}
                 trackBar={{activeBackgroundColor: secondaryColor, inActiveBackgroundColor: secondaryColor, width: 60, height: 30}}
                 value={useGroup} 
-                onPress={() => {setUseGroup(prevVal => !prevVal)}} 
+                onPress={() => {
+                    setUseGroup(prevVal => !prevVal)
+                }} 
                 animationDuration={250}
                 />
             }

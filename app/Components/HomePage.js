@@ -62,9 +62,18 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
             })
             res = await res.json()
             await setData(`placesData_${type}`, JSON.stringify(res))
+            await setData(`firstCardIndex_${type}`, '0')
         } else {
+            let firstCardIndex = await getData(`firstCardIndex_${type}`)
             res = JSON.parse(data)
-            // await setData(`placesData_${type}`, null)
+            res = res.slice(firstCardIndex) // remove the already swiped cards
+            
+            //remove cached place data to test api
+            // await setData('firstCardIndex_solo', '0') 
+            // await setData('firstCardIndex_group', '0') 
+            // await setData('matchesList', null)
+            // await setData('groupMatchesList', null)
+            // await setData(`placesData_${type}`, null) 
             
         }
         await setPlacesData(res)
@@ -84,7 +93,9 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
 
 
     const handleSwipe = async (data) => {
+        setData(`firstCardIndex_${useGroup ? 'group' : 'solo'}`, `${cardIndexRef.current-1}`)//next card (card after the one that just got swiped)
         cardIndexRef.current = cardIndexRef.current + 1
+        
         if (cardIndexRef.current < placesData.length) {
             renderNextCard()
         }

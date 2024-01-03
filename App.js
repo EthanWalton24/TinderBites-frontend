@@ -33,10 +33,9 @@ export default function App() {
 	const [page, setPage] = useState();
 	const [matchesList, setMatchesList] = useState([]);
 	const [groupMatchesList, setGroupMatchesList] = useState([]);
-
+	
 	const [useGroup, setUseGroup] = useState(false);
 	const [subMenuShown, setSubMenuShown] = useState(false);
-
 
 
 	async function getToken() {
@@ -44,7 +43,7 @@ export default function App() {
 		if (token != null) {
 			setPage('Home')
 			navigate('Home')
-
+			
 			// test login page
 			// await removeData('token')
 			// setPage('Login')
@@ -55,25 +54,39 @@ export default function App() {
 		}
 		return token;
 	}
+	
 
-
-	React.useEffect(() => {
-		getToken()
-        // .then((token) => {
-        //     console.log(token)
-        // })
-    }, [setPage])
-
+	async function loadMatchesData() {
+		getData('matchesList').then((data) => {
+			if (data != null) {
+				setMatchesList(data)
+			}
+		})
+		getData('groupMatchesList').then((data) => {
+			if (data != null) {
+				setGroupMatchesList(data)
+			}
+		})
+	}
+	
 
 	const addMatchData = (matchData) => {
 		if (useGroup) {
+			setData('groupMatchesList', [...groupMatchesList, matchData])
 			setGroupMatchesList(prevData => ([...prevData, matchData]))
 		} else {
+			setData('matchesList', [...matchesList, matchData])
 			setMatchesList(prevData => ([...prevData, matchData]))
 		}
 	}
 
 
+	React.useEffect(() => {
+		getToken()
+		loadMatchesData()
+	}, [setPage])
+	
+	
 	return (
 		<ThemeProvider theme={theme} setTheme={setTheme} systemTheme={systemTheme}>
 			<SafeAreaView style={{flex: 1, backgroundColor: primaryColor}}>

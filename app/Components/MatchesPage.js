@@ -168,8 +168,8 @@ function Matches({ matchesList }) {
                         onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); if (!usedArrows.current) {setCarouselIndex(index+1); handleActiveArrows()} else {usedArrows.current = false}}}
                         renderItem={({index, item}) => (
                             <View style={{width: '85%', marginHorizontal: '7.5%'}}>
-                                <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `https://maps.googleapis.com/maps/api/place/photo?photoreference=${item.data.photos[1].name.split('/').pop()}&maxwidth=1200&key=${GOOGLE_API_KEY}`}} key={item.data.displayName.text} />
-                                <Text style={{marginTop: 30, color: contrastColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center'}}>{item.data.displayName.text}</Text>
+                                <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `${item.data.photos[0].prefix}original${item.data.photos[0].suffix}`}} key={item.data.name} />
+                                <Text style={{marginTop: 30, color: contrastColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center'}}>{item.data.name}</Text>
                             </View>
                         )}
                     />

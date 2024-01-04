@@ -170,11 +170,10 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
 
                 {/* cards */}
                 {visibleCards.map((item, index) => {
-                    // console.log(item)
                     return (
-                        <View style={[styles.cardContainer]} pointerEvents="box-none" key={item.displayName.text}>
+                        <View style={[styles.cardContainer]} pointerEvents="box-none" key={item.name}>
                             <TinderCard
-                            key={item.displayName.text}
+                            key={item.name}
                             ref={(el) => (tinderCardsRef.current[index] = el)}
                             cardWidth={Dimensions.get('screen').width - 18}
                             cardHeight={Dimensions.get('screen').height - 310}
@@ -195,7 +194,7 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
                             >
 
                                 {/* food image */}
-                                <ImageBackground source={{ uri: `https://maps.googleapis.com/maps/api/place/photo?photoreference=${item.photos[1].name.split('/').pop()}&maxwidth=1200&key=${GOOGLE_API_KEY}` }} style={[styles.image, {overflow: 'hidden'}]}>
+                                <ImageBackground source={{ uri: `${item.photos[0].prefix}original${item.photos[0].suffix}` }} style={[styles.image, {overflow: 'hidden'}]}>
                                     <LinearGradient 
                                         colors={[`${colors.dark}00`, `${colors.dark}00`, `${colors.dark}CC`]} 
                                         style={[styles.image]}
@@ -208,7 +207,7 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
 
                                     {/* name */}
                                     <View style={{flexDirection: 'row', marginTop: 20}}>
-                                        <Text style={{fontSize: 24, fontWeight:'bold', letterSpacing: 1.5, color: colors.light}}>{item.displayName.text}</Text>
+                                        <Text style={{fontSize: 24, fontWeight:'bold', letterSpacing: 1.5, color: colors.light}}>{item.name}</Text>
                                     </View>
                                     
                                     {/* rating */}
@@ -216,12 +215,12 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
                                         <Rating
                                             disabled='true'
                                             size={25}
-                                            rating={item.rating}
+                                            rating={((item.rating/2).toFixed(1))}
                                             fillColor='#f1c40f'
                                             baseColor='transparent'
                                             style={{alignSelf: 'flex-start'}}
                                         />
-                                        <Text style={{fontSize: 18, position: 'absolute', left: (25*item.rating)+((25*.3)*(item.rating).toFixed(0))+10, marginTop: 3, color: greyColor}}>{item.rating.toFixed(1)} ({item.userRatingCount} reviews)</Text>
+                                        <Text style={{fontSize: 18, position: 'absolute', left: (25*((item.rating/2).toFixed(1)))+((25*.3)*((item.rating/2).toFixed(1)))+10, marginTop: 3, color: greyColor}}>{((item.rating/2).toFixed(1))}</Text>
                                     </View>
 
 
@@ -231,11 +230,11 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
                                             {/* distance */}
                                             <View style={{flexDirection: 'row'}}>
                                                 <CarIcon width={28} height={28} stroke={greyColor} fill={'transparent'} strokeWidth={1.2} style={{marginTop: 5}} />
-                                                <Text style={{fontSize: 16, marginLeft: 10, marginTop: 10, color: greyColor}}>{(getDistance({ latitude: 30.323507, longitude: -95.656346 }, { latitude: item.location.latitude, longitude: item.location.longitude }, .1 )/1609.34).toFixed(1)} Miles</Text>
+                                                <Text style={{fontSize: 16, marginLeft: 10, marginTop: 10, color: greyColor}}>{(item.distance/1609.34).toFixed(1)} Miles</Text>
                                             </View>
 
                                             {/* open? */}
-                                            <Text style={{fontSize: 18, marginTop: 5, color: item.regularOpeningHours?.openNow ? colors.red : colors.green}}>{item.regularOpeningHours?.openNow ? 'Closed' : 'Open Now'}</Text>
+                                            <Text style={{fontSize: 18, marginTop: 5, color: item.hours?.open_now ? colors.red : colors.green}}>{item.hours?.open_now ? 'Closed' : 'Open Now'}</Text>
                                         </View>
 
                                         {/* info button */}

@@ -146,7 +146,7 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
                 {
                 borderColor: colors.primary,
                 position: "relative",
-                marginTop: (Dimensions.get('screen').height - 420),
+                marginTop: (Dimensions.get('screen').height - 560),
                 alignSelf: "center"
                 },
             ]}

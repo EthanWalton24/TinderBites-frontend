@@ -69,11 +69,11 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
             res = res.slice(firstCardIndex) // remove the already swiped cards
             
             //remove cached place data to test api
-            // await setData('firstCardIndex_solo', '0') 
-            // await setData('firstCardIndex_group', '0') 
-            // await setData('matchesList', null)
-            // await setData('groupMatchesList', null)
-            // await setData(`placesData_${type}`, null) 
+            await setData('firstCardIndex_solo', '0') 
+            await setData('firstCardIndex_group', '0') 
+            await setData('matchesList', null)
+            await setData('groupMatchesList', null)
+            await setData(`placesData_${type}`, null) 
             
         }
         await setPlacesData(res)
@@ -170,6 +170,7 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
 
                 {/* cards */}
                 {visibleCards.map((item, index) => {
+                    // console.log(item)
                     return (
                         <View style={[styles.cardContainer]} pointerEvents="box-none" key={item.name}>
                             <TinderCard

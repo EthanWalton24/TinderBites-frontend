@@ -88,10 +88,10 @@ function InfoPage({ route, navigation, setPage, placeData }) {
                         <Text style={{fontSize: 14, color: accentColor, textAlign: 'center'}}>Call</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={{paddingHorizontal: 20}}>
+                    {/* <TouchableOpacity style={{paddingHorizontal: 20}}>
                         <MenuIcon width={35} height={35} fill={contrastColor} />
                         <Text style={{fontSize: 14, color: contrastColor, textAlign: 'center'}}>Menu</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     
                     <TouchableOpacity style={{paddingHorizontal: 20}} onPress={() => {Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlaceData.name)},${encodeURIComponent(selectedPlaceData.location.address)}`)}}>
                         <MapIcon width={35} height={35} fill={colors.red} stroke={primaryColor} strokeWidth={.5} />

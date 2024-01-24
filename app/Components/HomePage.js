@@ -32,7 +32,7 @@ Location.requestForegroundPermissionsAsync()
 // })
 
 
-function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) {
+function Home({ navigation, addMatchData, setPage, useGroup, fetchPlacesData, placesData, setPlacesData, visibleCards, setVisibleCards, cardIndexRef }) {
 
     const { theme, toggleTheme } = useContext(ThemeContext);
 	const primaryColor = theme === 'light' ? colors.light : colors.dark
@@ -42,45 +42,8 @@ function Home({ navigation, addMatchData, setPage, useGroup, setSubMenuShown }) 
     const accentColor = theme === 'light' ? colors.primary : colors.primary
     
     const tinderCardsRef = React.useRef([]);
-    const cardIndexRef = React.useRef(2);
-
-    const [placesData, setPlacesData] = React.useState([]);
-    const [visibleCards, setVisibleCards] = React.useState([])
-
-
-    async function fetchPlacesData() {
-        let res;
-        let type = useGroup ? 'group' : 'solo';
-        let token = await getData('token')
-        let data = await getData(`placesData_${type}`)
-        if (data == null) {
-            res = await fetch(`http://${HOST_IP}/api/getPlaces?type=${type}`, {
-                method: 'GET',
-                headers: {
-                    "Authorization": `Token ${token}`
-                }
-            })
-            res = await res.json()
-            await setData(`placesData_${type}`, JSON.stringify(res))
-            await setData(`firstCardIndex_${type}`, '0')
-        } else {
-            let firstCardIndex = await getData(`firstCardIndex_${type}`)
-            res = JSON.parse(data)
-            res = res.slice(firstCardIndex) // remove the already swiped cards
-            
-            //remove cached place data to test api
-            await setData('firstCardIndex_solo', '0') 
-            await setData('firstCardIndex_group', '0') 
-            await setData('matchesList', null)
-            await setData('groupMatchesList', null)
-            await setData(`placesData_${type}`, null) 
-            
-        }
-        await setPlacesData(res)
-        setVisibleCards(await res.slice(0,3).reverse())
-        return res
-    }
-
+    
+    // change places data based on group or solo swipe
     useEffect(() => {
         fetchPlacesData()
     }, [useGroup])

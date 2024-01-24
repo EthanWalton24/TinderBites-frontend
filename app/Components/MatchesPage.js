@@ -37,7 +37,6 @@ function Matches({ matchesList }) {
     const usedArrows = React.useRef(false)
 
     const [carouselIndex, setCarouselIndex] = React.useState(1);
-    const [activeArrows, setActiveArrows] = React.useState({'left': false, 'right': true})
     const [selectedPlaceData, setSelectedPlaceData] = React.useState(matchesList[0]?.data);
 
 
@@ -45,38 +44,29 @@ function Matches({ matchesList }) {
         usedArrows.current = true
 
         if (dir == 1) {
-            handleActiveArrows()
-            setCarouselIndex(ind => ind+1);
+            setCarouselIndex(ind => {
+                if (ind+1 > matchesList.length) {
+                    return 1
+                } else {
+                    return ind+1
+                }
+            });
             carouselRef.current?.next()
             setRefreshing(true)
             setTimeout(()=>{setRefreshing(false)}, 500)
         } else {
-            handleActiveArrows()
-            setCarouselIndex(ind => ind-1);
+            setCarouselIndex(ind => {
+                if (ind-1 < 1) {
+                    return matchesList.length
+                } else {
+                    return ind-1
+                }
+            });
             carouselRef.current?.prev()
             setRefreshing(true)
             setTimeout(()=>{setRefreshing(false)}, 500)
         }
 
-    }
-
-    const handleActiveArrows = () => {
-        setActiveArrows({'left': true, 'right': true})
-
-        if (usedArrows.current) {
-            if (carouselRef.current?.getCurrentIndex()+2 >= matchesList.length) {
-                setActiveArrows({'left': true, 'right': false})
-            } else if (carouselRef.current?.getCurrentIndex() <= 1) {
-                setActiveArrows({'left': false, 'right': true})
-            }
-        } else {
-            if (carouselRef.current?.getCurrentIndex()+1 >= matchesList.length) {
-                setActiveArrows({'left': true, 'right': false})
-            }
-            else if (carouselRef.current?.getCurrentIndex()+1 <= 1) {
-                setActiveArrows({'left': false, 'right': true})
-            }
-        }
     }
 
 
@@ -155,7 +145,7 @@ function Matches({ matchesList }) {
             <ScrollView style={{flex: 1}} disableIntervalMomentum={true} snapToOffsets={[0, Dimensions.get('window').height - 130]} decelerationRate='fast' snapToEnd={false} showsVerticalScrollIndicator={false}>
                 <View style={{backgroundColor: primaryColor, borderRadius: 20, height: Dimensions.get('window').height - 260}}>
                     <Carousel
-                        loop={false}
+                        // loop={false}
                         ref={carouselRef}
                         width={Dimensions.get('window').width}
                         height={Dimensions.get('window').height - 410}
@@ -165,7 +155,7 @@ function Matches({ matchesList }) {
                             parallaxScrollingOffset: 80
                         }}
                         scrollAnimationDuration={750}
-                        onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); if (!usedArrows.current) {setCarouselIndex(index+1); handleActiveArrows()} else {usedArrows.current = false}}}
+                        onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); setCarouselIndex(index+1);}}
                         renderItem={({index, item}) => (
                             <View style={{width: '85%', marginHorizontal: '7.5%'}}>
                                 <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `${item.data.photos[0].prefix}original${item.data.photos[0].suffix}`}} key={item.data.name} />
@@ -177,8 +167,8 @@ function Matches({ matchesList }) {
                     {/* carousel navigation */}
                     <View style={{marginHorizontal: 30, justifyContent: 'center'}}>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10}}>
-                            <TouchableOpacity activeOpacity={.5} onPress={() => {activeArrows.left && !refreshing ? handleMoveCarousel(-1) : null}}><NextIcon width={35} height={35} stroke={activeArrows.left ? greyColor : secondaryColor} strokeWidth={1.2} style={{marginTop: 5, transform: [{rotateY: '180deg'}]}} /></TouchableOpacity >
-                            <TouchableOpacity activeOpacity={.5} onPress={() => {activeArrows.right && !refreshing ? handleMoveCarousel(1) : null}}><NextIcon width={35} height={35} stroke={activeArrows.right ? greyColor : secondaryColor} strokeWidth={1.2} style={{marginTop: 5}} /></TouchableOpacity >
+                            <TouchableOpacity activeOpacity={.5} onPress={() => {!refreshing ? handleMoveCarousel(-1) : null}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5, transform: [{rotateY: '180deg'}]}} /></TouchableOpacity >
+                            <TouchableOpacity activeOpacity={.5} onPress={() => {!refreshing ? handleMoveCarousel(1) : null}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5}} /></TouchableOpacity >
                         </View>
                         
                         <ProgressBar

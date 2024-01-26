@@ -53,7 +53,6 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     const [radiusVal, setRadiusVal] = useState('')
 	const [useAddress, setUseAddress] = useState(false);
     const [locationPermission, setLocationPermission] = useState(false)
-    const [photosPermission, setPhotosPermission] = useState(false)
     const [image, setImage] = useState('')
 
     const [groupName, setGroupName] = useState('Group')
@@ -71,28 +70,82 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     
     
     useEffect(() => {
-        // change these to first check local storage then if not found request it
-        fetchUserSettings().then((d) => {
-            setAddressVal(d.address)
-            setRadiusVal(d.radius)
-            setUseAddress(d.use_address)
+        let has_radius = false
+        let has_use_address = false
+
+        // check local storage for settings preferences, if not found request it
+        getData('address').then((address) => {
+            if (address) {
+                setAddressVal(address)
+            }
+            getData('radius').then((radius) => {
+                if (radius) {
+                    setRadiusVal(radius)
+                    has_radius = true
+                }
+                getData('use_address').then((use_address) => {
+                    if (use_address) {
+                        setUseAddress(use_address)
+                        has_use_address = true
+                    }
+
+                    //get city and state from coords or address
+                    handleGetCityState(address)
+
+                    //get data from backend if not stored locally
+                    if (!has_radius || !has_use_address) {
+                        fetchUserSettings().then((d) => {
+                            setAddressVal(d.address)
+                            setData('address', d.address)
+                            setRadiusVal(d.radius)
+                            setData('radius', d.radius)
+                            setUseAddress(d.use_address)
+                            setData('use_address', d.use_address)
+                        })
+                    }
+                })
+            })
         })
 
-        fetchUserProfile().then((d) => {
-            setUsernameVal(d.username)
-            setEmailVal(d.email)
-            setNameVal(d.name)
-        })
 
-        //remove city and state, get from lat,long coords
-        getData('city').then((city) => {
-            setCityVal(city ? city : '')
+        let has_username = false
+        let has_email = false
+        // check local storage for profile data, if not found request it
+        getData('username').then((username) => {
+            if (username) {
+                setUsernameVal(username)
+                has_username = true
+            }
+
+            getData('email').then((email) => {
+                if (email) {
+                    setEmailVal(email)
+                    has_email = true
+                }
+
+                getData('name').then((name) => {
+                    if (name) {
+                        setNameVal(name)
+                    }
+                })
+
+                if (!has_username || !has_email) {
+                    fetchUserProfile().then((d) => {
+                        setUsernameVal(d.username)
+                        setData('username', d.username)
+                        setEmailVal(d.email)
+                        setData('email', d.email)
+                        setNameVal(d.name)
+                        setData('name', d.name)
+                    })
+                }
+            })
         })
-        getData('state').then((state) => {
-            setStateVal(state ? state : '')
-        })
+        
+
         getData('profilePic').then((imageURI) => {
             setImage(imageURI ? imageURI : '')
+            setProfilePic(imageURI)
         })
 
         // getData('groupName').then((groupName) => {
@@ -109,6 +162,46 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     }, [page])
 
 
+    const handleGetCityState = (address) => {
+        let has_city = false
+        let has_state = false
+        //check for city and state stored locally, if not then geocode
+        getData('city').then((city) => {
+            if (city) {
+                setCityVal(city)
+            }
+
+            getData('state').then((state) => {
+                if (state) {
+                    setStateVal(state)
+                }
+                
+                //geocode address or current location to get city and state
+                if (!has_city || !has_state) {
+                    if (address) {
+                        Location.geocodeAsync(address).then((d) => {
+                            Location.reverseGeocodeAsync({latitude: d[0].latitude, longitude: d[0].longitude}).then((d) => {
+                                setCityVal(d[0].city)
+                                setStateVal(d[0].region)
+                                setData('city', d[0].city)
+                                setData('state', d[0].region)
+                            })
+                        })
+                    } else {
+                        Location.getCurrentPositionAsync().then((d) =>{
+                            Location.reverseGeocodeAsync({latitude: d.coords.latitude, longitude: d.coords.longitude}).then((d) => {
+                                setCityVal(d[0].city)
+                                setStateVal(d[0].region)
+                                setData('city', d[0].city)
+                                setData('state', d[0].region)
+                            })
+                        })
+                    }
+                }
+            })
+        })
+    }
+
 
     const handleSubMenuButtonPress = (button) => {
         setSubMenu(button)
@@ -119,7 +212,6 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     const handleSubmitForm = (submenu) => {
         let success = false;
         if (submenu == 'Edit') {
-            console.log(usernameVal, nameVal, emailVal, cityVal, stateVal)
             if (usernameVal == '' || nameVal == '' || emailVal == '') {
                 setSubMenuMessage('Please Enter Required Fields')
             } else {
@@ -160,6 +252,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
 
         if (!result.canceled) {
             setImage(result.assets[0].uri)
+            setData('profilePic', result.assets[0].uri)
         }
     }
 
@@ -181,7 +274,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
             <View>
                 <Image source={profilePic ? {uri: profilePic} : require('../assets/ProfileImg.png')} style={styles.profilePicture} />
                 <Text style={[styles.name, {color: contrastColor}]}>{usernameVal}</Text>
-                <Text style={styles.location}>College Station, TX</Text>
+                <Text style={styles.location}>{cityVal}, {stateVal}</Text>
             </View>
 
             {/* buttons */}
@@ -216,7 +309,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                         {/* close sub-menu button */}
                         <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%', paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: greyColor+'4D'}}>
                             {/* cancel button */}
-                            <TouchableOpacity activeOpacity={.6} style={{width: 60}} onPress={() => {slidingPanelRef.current.hide(); setSubMenuShown(false); setSubMenuMessage('')}}>
+                            <TouchableOpacity activeOpacity={.6} style={{width: 60}} onPress={() => {slidingPanelRef.current.hide(); setSubMenuShown(false); setSubMenuMessage(''); setImage(profilePic)}}>
                                 <Text style={{fontSize: 17, color: contrastColor}}>Cancel</Text>
                             </TouchableOpacity>
                             
@@ -282,17 +375,6 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                                         </View>
                                     </TouchableOpacity>
                                 </View>
-                                <View style={{flexDirection: 'row', marginVertical: 10}}>
-                                    <Text style={{color: contrastColor, fontSize: 16, flex: 1}}>Photos</Text>
-                                    <TouchableOpacity onPress={() => handleAskForPermission('Photos')}>
-                                        <View style={{flexDirection: 'row'}}>
-                                            <Text style={{color: greyColor, fontSize: 16, paddingRight: 8}}>{photosPermission ? 'While Using' : 'Not Allowed'}</Text>
-                                            { !photosPermission && 
-                                                <ArrowIcon style={{transform: [{rotate: '90deg'}, {scaleX: .9}]}} width={20} height={20} fill={contrastColor} />
-                                            }
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
                             </View>
                         </View>
 
@@ -323,16 +405,6 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                                 <View style={{flexDirection: 'row', marginVertical: 15, paddingHorizontal: 15}}>
                                     <Text style={{width: 80, color: contrastColor, fontSize: 16}}>Email</Text>
                                     <TextInput style={{flex: 1, color: contrastColor, fontSize: 16, marginLeft: 10, borderBottomWidth: 1, borderBottomColor: secondaryColor, paddingBottom: 10}} onChangeText={(newText) => {setEmailVal(newText)}} autoComplete="off" autoCapitalize='none' defaultValue={emailVal} placeholder='Email' autoCorrect={false} keyboardType="email-address"  />
-                                </View>
-                                
-                                <View style={{flexDirection: 'row', marginVertical: 15, paddingHorizontal: 15}}>
-                                    <Text style={{width: 80, color: contrastColor, fontSize: 16}}>City</Text>
-                                    <TextInput style={{flex: 1, color: contrastColor, fontSize: 16, marginLeft: 10, borderBottomWidth: 1, borderBottomColor: secondaryColor, paddingBottom: 10}} onChangeText={(newText) => {setCityVal(newText)}} autoComplete="off" autoCapitalize='none' defaultValue={cityVal} placeholder='City' autoCorrect={false} keyboardType="default"  />
-                                </View>
-
-                                <View style={{flexDirection: 'row', marginTop: 15, marginBottom: 5, paddingHorizontal: 15}}>
-                                    <Text style={{width: 80, color: contrastColor, fontSize: 16}}>State</Text>
-                                    <TextInput style={{flex: 1, color: contrastColor, fontSize: 16, marginLeft: 10, paddingBottom: 10}} onChangeText={(newText) => {setStateVal(newText)}} maxLength={2} autoComplete="off" autoCapitalize="characters" defaultValue={stateVal} placeholder='State Code' autoCorrect={false} keyboardType="default"  />
                                 </View>
                             </View>
                         </View>

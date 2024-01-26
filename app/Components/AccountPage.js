@@ -1,11 +1,11 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState, useRef} from 'react';
 import { View, Text, Button, TouchableHighlight, StyleSheet, Dimensions, TouchableOpacity, ScrollView, useColorScheme, Animated, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import { Image } from 'expo-image';
-import {launchImageLibrary} from 'react-native-image-picker';
 import * as Location from 'expo-location';
 import Toggle from "react-native-toggle-element";
+import * as ImagePicker from 'expo-image-picker';
 
 import { setData, getData, removeData } from './Storage';
 
@@ -19,6 +19,7 @@ import ArrowIcon from '../assets/ArrowIcon.svg';
 
 import ThemeContext from './ThemeContext';
 import colors from '../config/colors';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 
 // get location 
@@ -39,23 +40,27 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     const secondaryColor = theme === 'light' ? colors.light2 : colors.dark2
     const greyColor = theme === 'light' ? colors.grey : colors.grey2
     const accentColor = theme === 'light' ? colors.primary : colors.primary
-    
-    const [usernameVal, setUsernameVal] = React.useState('')
-    const [nameVal, setNameVal] = React.useState('')
-    const [emailVal, setEmailVal] = React.useState('')
-    const [cityVal, setCityVal] = React.useState('')
-    const [stateVal, setStateVal] = React.useState('')
 
-    const [addressVal, setAddressVal] = React.useState('')
-    const [radiusVal, setRadiusVal] = React.useState('')
+    const [profilePic, setProfilePic] = useState('')
+    
+    const [usernameVal, setUsernameVal] = useState('')
+    const [nameVal, setNameVal] = useState('')
+    const [emailVal, setEmailVal] = useState('')
+    const [cityVal, setCityVal] = useState('')
+    const [stateVal, setStateVal] = useState('')
+
+    const [addressVal, setAddressVal] = useState('')
+    const [radiusVal, setRadiusVal] = useState('')
 	const [useAddress, setUseAddress] = useState(false);
-    const [locationPermission, setLocationPermission] = React.useState(false)
-    const [photosPermission, setPhotosPermission] = React.useState(false)
+    const [locationPermission, setLocationPermission] = useState(false)
+    const [photosPermission, setPhotosPermission] = useState(false)
+    const [image, setImage] = useState('')
 
     const [groupName, setGroupName] = useState('Group')
 
-    const slidingPanelRef = React.useRef()
+    const slidingPanelRef = useRef()
     const [subMenu, setSubMenu] = useState('Settings')
+    const [subMenuMessage, setSubMenuMessage] = useState('')
     
 
     //set location permissions
@@ -66,6 +71,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     
     
     useEffect(() => {
+        // change these to first check local storage then if not found request it
         fetchUserSettings().then((d) => {
             setAddressVal(d.address)
             setRadiusVal(d.radius)
@@ -78,12 +84,15 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
             setNameVal(d.name)
         })
 
-
+        //remove city and state, get from lat,long coords
         getData('city').then((city) => {
             setCityVal(city ? city : '')
         })
         getData('state').then((state) => {
             setStateVal(state ? state : '')
+        })
+        getData('profilePic').then((imageURI) => {
+            setImage(imageURI ? imageURI : '')
         })
 
         // getData('groupName').then((groupName) => {
@@ -108,15 +117,28 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
     };
 
     const handleSubmitForm = (submenu) => {
+        let success = false;
         if (submenu == 'Edit') {
             console.log(usernameVal, nameVal, emailVal, cityVal, stateVal)
-            setUserProfile(usernameVal, nameVal, emailVal)
+            if (usernameVal == '' || nameVal == '' || emailVal == '') {
+                setSubMenuMessage('Please Enter Required Fields')
+            } else {
+                setUserProfile(usernameVal, nameVal, emailVal)
+                setProfilePic(image)
+                setData('profilePic', image)
+                success=true
+            }
         } else {
             setUserSettings(addressVal, radiusVal, useAddress)
+            success = true
         }
-        slidingPanelRef.current.hide(); 
-        setSubMenuShown(false);
-        Keyboard.dismiss();
+
+        if (success) {
+            slidingPanelRef.current.hide(); 
+            setSubMenuShown(false);
+            Keyboard.dismiss();
+            setSubMenuMessage('')
+        }
     };
 
     const handleAskForPermission = (type) => {
@@ -129,13 +151,25 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
         }
     }
 
-    const handleRemovePersonButtonPress = (person) => {
-        console.log('remove ' + person);
-    };
+    const handleSaveImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 1
+        })
 
-    const handleAddPersonButtonPress = () => {
-        console.log("add person");
-    };
+        if (!result.canceled) {
+            setImage(result.assets[0].uri)
+        }
+    }
+
+    // const handleRemovePersonButtonPress = (person) => {
+    //     console.log('remove ' + person);
+    // };
+
+    // const handleAddPersonButtonPress = () => {
+    //     console.log("add person");
+    // };
 
 
 
@@ -145,7 +179,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
 
             {/* profile */}
             <View>
-                <Image source={require('../assets/ProfilePic.jpg')} style={styles.profilePicture} />
+                <Image source={profilePic ? {uri: profilePic} : require('../assets/ProfileImg.png')} style={styles.profilePicture} />
                 <Text style={[styles.name, {color: contrastColor}]}>{usernameVal}</Text>
                 <Text style={styles.location}>College Station, TX</Text>
             </View>
@@ -182,7 +216,7 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                         {/* close sub-menu button */}
                         <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%', paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: greyColor+'4D'}}>
                             {/* cancel button */}
-                            <TouchableOpacity activeOpacity={.6} style={{width: 60}} onPress={() => {slidingPanelRef.current.hide(); setSubMenuShown(false)}}>
+                            <TouchableOpacity activeOpacity={.6} style={{width: 60}} onPress={() => {slidingPanelRef.current.hide(); setSubMenuShown(false); setSubMenuMessage('')}}>
                                 <Text style={{fontSize: 17, color: contrastColor}}>Cancel</Text>
                             </TouchableOpacity>
                             
@@ -194,6 +228,12 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                                 <Text style={{fontSize: 17, color: accentColor}}>Done</Text>
                             </TouchableOpacity> 
                         </View>
+
+                        {subMenuMessage != '' && 
+                            <View style={{alignItems: 'center', paddingVertical: 3, backgroundColor: colors.red}}>
+                                <Text style={{color: contrastColor, fontSize: 14}}>{subMenuMessage}</Text>
+                            </View>
+                        }
                         
                         {/* settings sub-menu */}
                         <View style={{display: subMenu === "Settings" ? "flex" : "none", padding: 15, paddingRight: 8}}>
@@ -259,8 +299,13 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                         {/* edit profile sub-menu */}
                         <View style={{display: subMenu === "Edit" ? "flex" : "none"}}>
                             {/* change image section */}
-                            <View style={{height: 150, borderBottomWidth: 1, borderBottomColor: secondaryColor}}>
-
+                            <View style={{height: 150, borderBottomWidth: 1, borderBottomColor: secondaryColor, justifyContent: 'center', alignItems: 'center'}}>
+                                <TouchableOpacity style={{height: '100%'}} onPress={() => handleSaveImage()}>
+                                    <View style={{alignItems: 'center'}}>
+                                        <Image source={image ? {uri: image} : require('../assets/ProfileImg.png')} style={{height: 110, aspectRatio: 1, marginTop: 10, borderRadius: '50%'}} />
+                                        <Text style={{marginVertical: 6, fontSize: 12, color: contrastColor}}>Change Profile Picture</Text>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
 
                             {/* change details section */}

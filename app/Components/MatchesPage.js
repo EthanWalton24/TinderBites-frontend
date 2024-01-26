@@ -6,9 +6,11 @@ import ProgressBar from 'react-native-animated-progress';
 
 import NextIcon from '../assets/NextIcon.svg';
 import ArrowIcon from '../assets/ArrowIcon.svg';
+import DiceIcon from '../assets/DiceIcon.svg';
 
 import ThemeContext from './ThemeContext';
 import colors from '../config/colors';
+import CarouselItem from './CarouselItem';
 
 import {GOOGLE_API_KEY} from '@env';
 import InfoPage from './InfoPage';
@@ -25,6 +27,7 @@ function Matches({ matchesList }) {
     const contrastColor = theme === 'light' ? colors.dark : colors.light
     const accentColor = theme === 'light' ? colors.primary : colors.primary
 
+    const glowOpacity = useRef(new Animated.Value(0)).current
     const [refreshing, setRefreshing] = React.useState(false);
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -34,14 +37,13 @@ function Matches({ matchesList }) {
     }, []);
 
     const carouselRef = React.useRef()
-    const usedArrows = React.useRef(false)
+    const carouselItemsRef = React.useRef(Array(matchesList.length).fill(null))
 
     const [carouselIndex, setCarouselIndex] = React.useState(1);
     const [selectedPlaceData, setSelectedPlaceData] = React.useState(matchesList[0]?.data);
 
 
     const handleMoveCarousel = (dir) => {
-        usedArrows.current = true
 
         if (dir == 1) {
             setCarouselIndex(ind => {
@@ -66,6 +68,48 @@ function Matches({ matchesList }) {
             setRefreshing(true)
             setTimeout(()=>{setRefreshing(false)}, 500)
         }
+
+    }
+
+
+    
+
+    const handlePickRandomPlace = () => {
+        carouselItemsRef.current[carouselRef.current?.getCurrentIndex()].glowOff()
+        setRefreshing(true)
+        //amount of times to spin (chooses random place)
+        let ind = Math.floor( Math.random() * (matchesList.length+1) )
+        let num = ind + matchesList.length * 2
+        
+        //spin carousel
+        let dist;
+        let total_time = 0;
+        Array(num).fill().map((x,i) => {
+
+            if (num - i < 5) {
+                dist = 5 - (num - i)
+                total_time += dist*100
+                setTimeout(() => {
+                    carouselRef.current?.next()
+                }, dist*100 + (i*100));
+            } else if (5 - i > 0) {
+                dist = 5 - i
+                total_time += dist*100
+                setTimeout(() => {
+                    carouselRef.current?.next()
+                }, dist*100 + (i*100));
+            } else {
+                total_time += 100
+                setTimeout(() => {
+                    carouselRef.current?.next()
+                }, 100 + (i*100));
+            }
+        });
+
+        //create glow effect
+        setTimeout(() => {
+            carouselItemsRef.current[carouselRef.current?.getCurrentIndex()].glowOn()
+        }, total_time-200);
 
     }
 
@@ -155,12 +199,13 @@ function Matches({ matchesList }) {
                             parallaxScrollingOffset: 80
                         }}
                         scrollAnimationDuration={750}
-                        onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); setCarouselIndex(index+1);}}
+                        onSnapToItem={(index) => {setSelectedPlaceData(matchesList[index].data); setCarouselIndex(index+1); setRefreshing(false)}}
                         renderItem={({index, item}) => (
-                            <View style={{width: '85%', marginHorizontal: '7.5%'}}>
-                                <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `${item.data.photos[0].prefix}original${item.data.photos[0].suffix}`}} key={item.data.name} />
-                                <Text style={{marginTop: 30, color: contrastColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center'}}>{item.data.name}</Text>
-                            </View>
+                            <CarouselItem ref={(ele) => carouselItemsRef.current[index] = ele} imgURI={`${item.data.photos[0].prefix}original${item.data.photos[0].suffix}`} name={item.data.name} glowOpacity={React.useRef(new Animated.Value(0)).current}></CarouselItem>
+                            // <Animated.View ref={(ele) => {carouselItemsRef.current[index] = ele}} style={{width: '85%', marginHorizontal: '7.5%'}}>
+                            //     <Image style={{width: '100%', aspectRatio: 1/1.15, borderRadius: 20}} source={{uri: `${item.data.photos[0].prefix}original${item.data.photos[0].suffix}`}} key={item.data.name} />
+                            //     <Text style={{marginTop: 30, color: contrastColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center'}}>{item.data.name}</Text>
+                            // </Animated.View>
                         )}
                     />
 
@@ -168,6 +213,7 @@ function Matches({ matchesList }) {
                     <View style={{marginHorizontal: 30, justifyContent: 'center'}}>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10}}>
                             <TouchableOpacity activeOpacity={.5} onPress={() => {!refreshing ? handleMoveCarousel(-1) : null}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5, transform: [{rotateY: '180deg'}]}} /></TouchableOpacity >
+                            <TouchableOpacity activeOpacity={.5} onPress={() => {!refreshing ? handlePickRandomPlace() : null}}><DiceIcon width={28} height={28} fill={greyColor} strokeWidth={1.2} style={{marginTop: 10}} /></TouchableOpacity >
                             <TouchableOpacity activeOpacity={.5} onPress={() => {!refreshing ? handleMoveCarousel(1) : null}}><NextIcon width={35} height={35} stroke={greyColor} strokeWidth={1.2} style={{marginTop: 5}} /></TouchableOpacity >
                         </View>
                         

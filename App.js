@@ -57,8 +57,8 @@ export default function App() {
 		return res
 	}
 
-	async function setUserSettings(address, radius, use_address) {
-		let location = await Location.geocodeAsync(address)
+	async function setUserSettings(address, radius, use_address, city, state) {
+		let location = await Location.geocodeAsync(address + ` ${city}, ${state}`)
 		let token = await getData('token')
 		await fetch(`http://${HOST_IP}/api/Settings`, {
 			method: 'POST',

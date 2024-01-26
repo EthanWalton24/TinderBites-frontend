@@ -169,13 +169,15 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
         getData('city').then((city) => {
             if (city) {
                 setCityVal(city)
+                has_city = true
             }
 
             getData('state').then((state) => {
                 if (state) {
                     setStateVal(state)
+                    has_state = true
                 }
-                
+
                 //geocode address or current location to get city and state
                 if (!has_city || !has_state) {
                     if (address) {
@@ -221,8 +223,12 @@ function Account({ navigation, page, setSubMenuShown, fetchUserSettings, setUser
                 success=true
             }
         } else {
-            setUserSettings(addressVal, radiusVal, useAddress)
-            success = true
+            if (isNaN(radiusVal) || radiusVal == '' || parseFloat(radiusVal) < 1) {
+                setSubMenuMessage('Invalid Radius')
+            } else {
+                setUserSettings(addressVal, radiusVal, useAddress, cityVal, stateVal)
+                success = true
+            }
         }
 
         if (success) {
